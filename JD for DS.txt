@@ -1,0 +1,60 @@
+Job Title
+Senior Data Scientist | AI and Algorithmic Systems
+
+Location
+India | Hybrid
+
+Role Overview
+We are looking for a hands-on Data Scientist to design, build, and deploy AI-driven analytics and automation platforms across financial services, recruitment systems, and operational intelligence. This role focuses on machine learning model development, NLP-based automation, algorithmic trading systems, and end-to-end data pipelines deployed on cloud infrastructure.
+
+You will work closely with business stakeholders, recruiters, and engineering teams to translate real-world problems into scalable ML solutions that drive profitability, efficiency, and data-driven decision-making.
+
+Key Responsibilities
+
+Design and deploy machine learning and deep learning models using Python, Scikit-learn, TensorFlow, PyTorch, XGBoost, and LightGBM for prediction, classification, and forecasting use cases
+
+Build and maintain algorithmic trading systems for crypto and forex markets using technical indicators such as EMA, RSI, MACD, and candlestick patterns
+
+Develop NLP-based resume parsing and job matching systems using Python, SpaCy, and document processing libraries
+
+Create end-to-end data pipelines for real-time and batch data ingestion using SQL, APIs, CSV, Excel, and JSON sources
+
+Implement REST-based services using Flask or FastAPI and deploy containerized applications using Docker and cloud platforms
+
+Build interactive dashboards and KPI reporting systems using Power BI, Tableau, Matplotlib, and Plotly for business and trading analytics
+
+Perform statistical analysis, A/B testing, and model validation to improve system accuracy and business impact
+
+Collaborate in Agile teams to deliver production-grade AI systems and automation tools aligned with business goals
+
+Deploy and manage ML systems on cloud infrastructure using AWS, Vultr, or Linode with secure, low-latency architecture
+
+Required Qualifications
+
+4+ years of experience in Data Science, Machine Learning, or Applied AI roles
+
+Strong programming skills in Python and SQL
+
+Hands-on experience with ML and DL frameworks including Scikit-learn, TensorFlow, Keras, PyTorch, and Gradient Boosting models
+
+Experience building algorithmic trading, financial forecasting, or real-time analytics systems
+
+Proficiency in NLP techniques for document parsing, skill extraction, and classification
+
+Experience developing REST APIs using Flask or FastAPI and deploying services with Docker
+
+Strong background in data visualization and BI tools such as Power BI and Tableau
+
+Experience working in Agile and SDLC-driven development environments
+
+Preferred Skills
+
+Experience integrating trading platforms such as MetaTrader, Binance, or Telegram Bots
+
+Cloud deployment experience using AWS or VPS platforms
+
+Strong background in A/B testing, statistical modeling, and KPI-driven performance tracking
+
+Exposure to recruitment automation or CRM analytics platforms
+
+Experience mentoring or training junior data professionals
