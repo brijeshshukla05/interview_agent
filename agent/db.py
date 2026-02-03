@@ -40,6 +40,7 @@ def init_db():
         print("Migrating DB: Adding question_bank column...")
         c.execute("ALTER TABLE candidates ADD COLUMN question_bank TEXT DEFAULT NULL")
 
+
         
     conn.commit()
     conn.close()

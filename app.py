@@ -13,6 +13,7 @@ from agent.report import generate_pdf_report, generate_hr_recommendation
 import base64
 import time
 import json
+import streamlit.components.v1 as components
 
 # Add current directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -20,6 +21,33 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 st.set_page_config(page_title="AI Interview Agent", page_icon="📝")
 
 st.title("🤖 AI Interview Agent Platform")
+
+# Custom component for reliable tab-switch detection
+tab_switch_tracker = components.declare_component(
+    "tab_switch_tracker",
+    path=os.path.join(os.path.dirname(__file__), "components", "tab_switch_tracker"),
+)
+
+def end_interview():
+    if st.session_state.get("agent_state") is not None:
+        evals = st.session_state.agent_state.get("evaluations", [])
+        if not evals and "current_candidate_name" in st.session_state:
+            avg_score = 0.0
+            cand = get_candidate(st.session_state.current_candidate_name)
+            resume_score = cand.get("resume_score", 0) if cand else 0
+            rec = generate_hr_recommendation([], avg_score, resume_score)
+            rec["auto_ended"] = bool(st.session_state.get("auto_ended", False))
+            if rec["auto_ended"]:
+                rec["auto_end_reason"] = "Tab switch limit reached"
+            update_interview_result(
+                st.session_state.current_candidate_name,
+                [],
+                avg_score,
+                final_summary=json.dumps(rec),
+                decision=rec.get("decision")
+            )
+    st.session_state.interview_active = False
+    st.session_state.confirm_end = False
 
 # Initialize DB
 init_db()
@@ -58,23 +86,8 @@ with st.sidebar:
             col_y, col_n = st.columns(2)
             with col_y:
                 if st.button("Yes"):
-                    # If interview ends without any attempts, mark as completed with 0 score
-                    if st.session_state.get("agent_state") is not None:
-                        evals = st.session_state.agent_state.get("evaluations", [])
-                        if not evals and "current_candidate_name" in st.session_state:
-                            avg_score = 0.0
-                            cand = get_candidate(st.session_state.current_candidate_name)
-                            resume_score = cand.get("resume_score", 0) if cand else 0
-                            rec = generate_hr_recommendation([], avg_score, resume_score)
-                            update_interview_result(
-                                st.session_state.current_candidate_name,
-                                [],
-                                avg_score,
-                                final_summary=json.dumps(rec),
-                                decision=rec.get("decision")
-                            )
-                    st.session_state.interview_active = False
-                    st.session_state.confirm_end = False
+                    st.session_state.auto_ended = False
+                    end_interview()
                     st.rerun()
             with col_n:
                 if st.button("No"):
@@ -248,6 +261,9 @@ if mode == "HR Admin":
                 rec = parse_recommendation(c.get("final_summary"))
                 with st.expander(f"{c['name']} — {rec.get('decision', 'Pending')}"):
                     st.write(f"**Decision:** {rec.get('decision', 'N/A')}")
+                    if rec.get("auto_ended"):
+                        reason = rec.get("auto_end_reason", "Auto-ended")
+                        st.write(f"**Auto-Ended:** Yes ({reason})")
                     st.write(f"**Performance:** {rec.get('performance', 'N/A')}")
                     st.write(f"**Score-Based Summary:** {rec.get('score_based_summary', 'N/A')}")
                     st.write(f"**Knowledge Level:** {rec.get('knowledge_level', 'N/A')}")
@@ -319,6 +335,8 @@ elif mode == "Candidate Access":
                     st.session_state.current_candidate_name = cand['name'] # Store for saving later
                     st.success(f"Welcome, {cand['name']}! Starting Interview...")
                     st.session_state.interview_active = True
+                    st.session_state.tab_switch_reset_token = str(time.time())
+                    st.session_state.auto_ended = False
                     
                     # Reset Proctoring Logic (Optional, JS persists but we can ignore previous counts if we wanted)
                     # For now, we count specific session anomalies.
@@ -373,6 +391,21 @@ elif mode == "Candidate Access":
     else:
         # Active Interview
         st.header("🎤 Interview Session")
+
+        # Tab switch tracking (auto-end on second switch)
+        if "current_candidate_name" in st.session_state:
+            name = st.session_state.current_candidate_name
+            auto_submit_event = tab_switch_tracker(
+                local_key=f"tab_switch_local_{name}",
+                auto_key=f"tab_switch_autosubmit_{name}",
+                session_key=f"tab_switch_session_{name}",
+                reset_token=st.session_state.get("tab_switch_reset_token", ""),
+                default="",
+            )
+            if auto_submit_event == "auto_submit":
+                st.session_state.auto_ended = True
+                end_interview()
+                st.rerun()
 
         # Display Chat History
         for msg in st.session_state.messages:
@@ -436,6 +469,7 @@ elif mode == "Candidate Access":
                  st.session_state.messages.append({"role": "assistant", "content": q_text, "audio": c_audio})
                  st.session_state.agent_state["history"].append({"role": "assistant", "content": q_text})
             else:
+                st.session_state.auto_ended = False
                 st.session_state.interview_active = False
                 st.rerun()
 
@@ -469,6 +503,9 @@ if not st.session_state.interview_active and st.session_state.agent_state and st
             st.session_state.hr_recommendation = generate_hr_recommendation(evals, avg_score, resume_score)
 
         rec = st.session_state.hr_recommendation
+        rec["auto_ended"] = bool(st.session_state.get("auto_ended", False))
+        if rec["auto_ended"]:
+            rec["auto_end_reason"] = "Tab switch limit reached"
         update_interview_result(
             st.session_state.current_candidate_name,
             evals,
