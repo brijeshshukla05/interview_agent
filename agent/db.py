@@ -17,6 +17,7 @@ def init_db():
             resume_analysis TEXT,
             extracted_topics TEXT,
             question_bank TEXT,
+            years_of_experience REAL DEFAULT 0,
             interview_data TEXT,
             interview_score REAL,
             status TEXT,
@@ -40,11 +41,17 @@ def init_db():
         print("Migrating DB: Adding question_bank column...")
         c.execute("ALTER TABLE candidates ADD COLUMN question_bank TEXT DEFAULT NULL")
 
+    try:
+        c.execute("SELECT years_of_experience FROM candidates LIMIT 1")
+    except sqlite3.OperationalError:
+        print("Migrating DB: Adding years_of_experience column...")
+        c.execute("ALTER TABLE candidates ADD COLUMN years_of_experience REAL DEFAULT 0")
+
         
     conn.commit()
     conn.close()
 
-def add_candidate(name: str, score: int, analysis: dict, topics: list, question_bank: list | None = None):
+def add_candidate(name: str, score: int, analysis: dict, topics: list, question_bank: list | None = None, years_of_experience: float = 0):
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
@@ -53,9 +60,9 @@ def add_candidate(name: str, score: int, analysis: dict, topics: list, question_
         # For this logic, we'll INSERT OR REPLACE or just INSERT
         
         c.execute('''
-            INSERT OR REPLACE INTO candidates (name, resume_score, resume_analysis, extracted_topics, question_bank, status)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (name.lower(), score, json.dumps(analysis), json.dumps(topics), json.dumps(question_bank or []), 'screened'))
+            INSERT OR REPLACE INTO candidates (name, resume_score, resume_analysis, extracted_topics, question_bank, years_of_experience, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (name.lower(), score, json.dumps(analysis), json.dumps(topics), json.dumps(question_bank or []), years_of_experience, 'screened'))
         
         conn.commit()
     except Exception as e:

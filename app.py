@@ -140,7 +140,8 @@ if mode == "HR Admin":
                         # Save to Database
                         # We store extracting topics for later interview use
                         topics = analysis.get("extracted_topics", [])
-                        add_candidate(name, score, analysis, topics, question_bank)
+                        yoe = analysis.get("years_of_experience", 0)
+                        add_candidate(name, score, analysis, topics, question_bank, yoe)
                         
                         results.append({
                             "Name": name,

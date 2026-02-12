@@ -32,6 +32,8 @@ def generate_question(state: AgentState):
     history = state.get("history", [])
     question_bank = state.get("question_bank", []) or []
     bank_index = state.get("bank_index", 0)
+    yoe = state.get("years_of_experience", 0)
+    logger.info(f"Generating question for candidate with {yoe} years of experience")
     
     # Format history for prompt
     history_str = "\n".join([f"{msg['role']}: {msg['content']}" for msg in history]) # Use full context for variety check
@@ -51,12 +53,43 @@ def generate_question(state: AgentState):
         bank_index += 1
     else:
         logger.debug("Generating question via LLM")
+        
+        # Select a random Focus Topic to ensure variety/rotation
+        # Filter out empty strings if any
+        valid_topics = [t for t in state.get("topics", []) if t.strip()]
+        if not valid_topics:
+            valid_topics = ["General Technical"]
+        
+        focus_topic = random.choice(valid_topics)
+        logger.info(f"Selected Focus Topic: {focus_topic}")
+
+        # Style Rotation Logic
+        STYLES = [
+            "Scenario/Problem Solving",
+            "Conceptual/Deep Dive",
+            "Debugging/Troubleshooting",
+            "Comparative Analysis",
+            "System Design/Architecture"
+        ]
+        last_style = state.get("last_question_style")
+        available_styles = [s for s in STYLES if s != last_style]
+        selected_style = random.choice(available_styles)
+        logger.info(f"Selected Question Style: {selected_style}")
+
+        # Concept Exclusion Logic (Extract last 3 questions to avoid)
+        # We explicitly list them so the LLM knows what to semantic-avoid
+        recent_history = [m["content"] for m in history if m["role"] == "assistant"][-3:]
+        avoid_concepts = "\n- ".join(recent_history) if recent_history else "None"
+
         prompt = QUESTION_GENERATION.format(
             topics=topics,
             complexity_level=complexity,
             history=history_str,
             question_type=question_type,
-            years_of_experience=state.get("years_of_experience", 0)
+            years_of_experience=state.get("years_of_experience", 0),
+            focus_topic=focus_topic,
+            style=selected_style,
+            avoid_concepts=avoid_concepts
         )
         
         llm = get_llm(temperature=config.TEMPERATURE_ASK, max_tokens=config.MAX_TOKENS_QUESTION)
@@ -69,6 +102,7 @@ def generate_question(state: AgentState):
         "current_question": question_text,
         "bank_index": bank_index,
         "question_bank": question_bank,
+        "last_question_style": selected_style,
         # We don't append to history here yet, we append when we send it to user? 
         # Or we can append now. Let's append now for the record.
         # Actually, standard pattern: update state, then external loop prints it.
