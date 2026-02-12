@@ -4,6 +4,9 @@ from prompts.templates import TOPIC_SOLICITATION, QUESTION_GENERATION, EVALUATIO
 from langchain_core.messages import HumanMessage, SystemMessage
 import config
 import random
+from agent.logger import get_logger
+
+logger = get_logger(__name__)
 
 def get_topics(state: AgentState):
     """
@@ -23,6 +26,7 @@ def generate_question(state: AgentState):
     """
     Generates a question based on current topics and complexity.
     """
+    logger.info("Generating question")
     topics = ", ".join(state["topics"])
     complexity = state.get("complexity_level", 1)
     history = state.get("history", [])
@@ -30,7 +34,7 @@ def generate_question(state: AgentState):
     bank_index = state.get("bank_index", 0)
     
     # Format history for prompt
-    history_str = "\n".join([f"{msg['role']}: {msg['content']}" for msg in history[-5:]]) # Limit context window
+    history_str = "\n".join([f"{msg['role']}: {msg['content']}" for msg in history]) # Use full context for variety check
     
     # Always ask conceptual/theoretical questions (no coding/practical)
     question_type = "conceptual/theoretical"
@@ -43,18 +47,22 @@ def generate_question(state: AgentState):
     if use_bank:
         pick_idx = random.randrange(len(question_bank))
         question_text = question_bank.pop(pick_idx).strip()
+        logger.info(f"Picked question from bank: {question_text}")
         bank_index += 1
     else:
+        logger.debug("Generating question via LLM")
         prompt = QUESTION_GENERATION.format(
             topics=topics,
             complexity_level=complexity,
             history=history_str,
-            question_type=question_type
+            question_type=question_type,
+            years_of_experience=state.get("years_of_experience", 0)
         )
         
         llm = get_llm(temperature=config.TEMPERATURE_ASK, max_tokens=config.MAX_TOKENS_QUESTION)
         response = llm.invoke([HumanMessage(content=prompt)])
         question_text = response.content.strip()
+        logger.info(f"Generated Question: {question_text}")
     
     # Update state
     return {
@@ -70,6 +78,7 @@ def evaluate_answer(state: AgentState):
     """
     Evaluates the user's answer to the current question.
     """
+    logger.info("Evaluating answer")
     question = state["current_question"]
     # User answer should have been put into state by the human_input handling part of the loop
     # We'll assume the last message in history is the user's answer, OR we have a field.
@@ -95,6 +104,7 @@ def evaluate_answer(state: AgentState):
             topics=state["topics"],
             complexity=state["complexity_level"]
         )
+        logger.info("Question skipped by user")
     else:
         prompt = EVALUATION.format(
             question=question,
@@ -113,6 +123,7 @@ def evaluate_answer(state: AgentState):
             topics=state["topics"],
             complexity=state["complexity_level"]
         )
+        logger.info(f"Answer evaluated. Score: {eval_data.get('score', 0)}")
     
     # Increase complexity
 

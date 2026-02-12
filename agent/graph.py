@@ -1,6 +1,9 @@
 from langgraph.graph import StateGraph, END
 from agent.state import AgentState
 from agent.nodes import generate_question, evaluate_answer
+from agent.logger import get_logger
+
+logger = get_logger(__name__)
 
 def route_start(state: AgentState):
     """
@@ -15,7 +18,9 @@ def route_start(state: AgentState):
     # Actually, simpler: check if the last message was from the user.
     history = state.get("history", [])
     if history and history[-1]["role"] == "user":
+        logger.debug("Routing to evaluate_answer")
         return "evaluate_answer"
+    logger.debug("Routing to generate_question")
     return "generate_question"
 
 import config
@@ -25,10 +30,13 @@ def route_next_step(state: AgentState):
     Determine if we should continue generating questions or end the interview.
     """
     if state.get("question_count", 0) >= config.MAX_QUESTIONS_DEFAULT:
+        logger.info("Max questions reached. Ending interview.")
         return END
+    logger.debug("Continuing interview. Generating next question.")
     return "generate_question"
 
 def create_graph():
+    logger.info("Creating StateGraph")
     builder = StateGraph(AgentState)
     
     builder.add_node("generate_question", generate_question)

@@ -6,38 +6,29 @@ Be polite and professional.
 
 QUESTION_GENERATION = """You are a technical interviewer for the following topics: {topics}.
 Your goal is to ask a {question_type} question to evaluate the candidate's knowledge.
+Candidate profile: {years_of_experience} years of experience.
 The current complexity level is {complexity_level} (scale 1-10, where 1 is basic and 10 is expert).
 Previous conversation history:
 {history}
 
-IMPORTANT: You must ONLY ask questions that are strictly within the listed topics. Do NOT introduce new topics,
-technologies, domains, or out-of-scope concepts. If the topics are too narrow, ask a more focused question within
-those topics rather than switching topics. Also, avoid asking a question that repeats a topic already covered
-in the candidate's previous answers; use the history to pick a not-yet-covered angle within the same topics.
+IMPORTANT:
+1. Scope: Stay strictly within the listed topics ({topics}).
+2. Variety & Breadth: You MUST explore different sub-topics and angles. Do NOT stay stuck on the same narrow aspect (e.g., if you asked about an annotation, do not ask about another annotation immediately; switch to configuration, architecture, security, or performance).
+3. Avoid Repetition: Check the history. If a sub-topic has been covered (even briefly), move to a completely different sub-topic within the main topics.
 
-Seniority/role alignment: Infer the candidate's likely role level and domain from the provided topics and the
-conversation history (which may include resume/JD context). Then tailor the question difficulty and focus to
-that role level. Examples: junior candidates -> foundational, practical understanding; senior/lead/manager roles
--> architecture, tradeoffs, leadership/process, version control/quality practices, and strategic decision-making.
-If the role is non-technical (e.g., sales, HR, design, marketing, finance), ask questions appropriate to that
-role's domain and seniority, not coding questions.
+Seniority/role alignment: Use the candidate's years of experience ({years_of_experience} years) to calibrate the question.
+- 0-2 years: Focus on fundamentals, basic usage, and definitions.
+- 3-5 years: Focus on implementation details, standard patterns, and problem-solving.
+- 5+ years: Focus on architecture, tradeoffs, scalability, performance optimization, and deep internals.
 
-Follow-up rule: Prefer asking a deeper follow-up question based on the candidate's most recent answer and the
-last question (e.g., clarify, probe edge cases, ask for tradeoffs, examples, or implications). If the candidate
-answer seems complete and sufficient, then move to a new question or topic.
+Decision to Follow-up vs New Question:
+- Default to a NEW QUESTION on a FRESH sub-topic to maximize coverage.
+- Only ask a follow-up if the candidate's previous answer was incomplete, vague, or arguably incorrect, and you need to clarify their understanding.
+- If the previous answer was satisfactory, DO NOT ask a follow-up. Move to a new area.
 
-STRICT FOLLOW-UP FORMAT: If you decide a follow-up is needed, ask exactly ONE short follow-up question only.
-Do NOT combine multiple follow-ups, do NOT ask multi-part questions, and do NOT include additional questions
-in the same response. Only ask a follow-up when the prior answer is incomplete or insufficient; otherwise,
-move to a new single question within the same topics.
-
-
-Generate a single, clear {question_type} technical question based on the topics and complexity level.
-Do not ask multiple questions at once.
-Do not provide the answer.
-Just ask the question.
-
-Constraint: Keep the question concise (max 10-15 lines). Avoid overly long descriptions.
+Output:
+Generate a single, clear {question_type} technical question.
+Constraint: Keep the question concise (max 10-15 lines).
 """
 
 # Note: We might want to pass the last question to the evaluator or rely on history.
@@ -78,14 +69,22 @@ Resume content:
 Task:
 1. Extract the candidate's full name from the resume. If not found, use "Unknown Candidate".
 2. Analyze the resume against the JD keywords and requirements.
-3. Identify the top 3-5 technical topics or skills that overlap between the JD and Resume (e.g., "Python", "React", "AWS", "System Design").
-4. Assign a match score from 0 to 100.
-5. Provide a brief reasoning for the score.
+3. Identify the top 3-5 technical topics or skills that overlap between the JD and Resume.
+4. Extract experience:
+   - If "Total Years of Experience" is explicitly stated, use that.
+   - Otherwise, CALCULATE it by summing durations of each work entry.
+   - For dates like "Present" or "Current", use the current date: {current_date}.
+   - Exclude overlapping periods (count them only once).
+   - Exclude education/internships if they overlap significantly with full-time work, but count them if they are distinct work experiences.
+   - Round to the nearest 0.5 years.
+5. Assign a match score from 0 to 100.
+6. Provide a brief reasoning for the score.
 
 CRITICAL: Return the result as a valid JSON object. Do not add any markdown blocks or extra text.
 {{
     "name": "<Candidate Name>",
     "score": <int 0-100>,
+    "years_of_experience": <number>,
     "reasoning": "<string>",
     "extracted_topics": ["<Topic1>", "<Topic2>", "<Topic3>"]
 }}
