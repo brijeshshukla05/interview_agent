@@ -10,10 +10,13 @@ from agent.audio import text_to_speech_bytes, audio_bytes_to_text
 from streamlit_mic_recorder import mic_recorder
 from agent.db import init_db, add_candidate, get_candidate, get_all_candidates, update_interview_result, update_recommendation, clear_db
 from agent.report import generate_pdf_report, generate_hr_recommendation
+from agent.logger import get_logger
 import base64
 import time
 import json
 import streamlit.components.v1 as components
+
+logger = get_logger(__name__)
 
 # Add current directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -50,10 +53,12 @@ def end_interview():
     st.session_state.confirm_end = False
 
 # Initialize DB
+logger.info("Initializing Database")
 init_db()
 
 # Initialize Session State
 if "graph" not in st.session_state:
+    logger.info("Initializing Graph in Session State")
     st.session_state.graph = create_graph()
 if "agent_state" not in st.session_state:
     st.session_state.agent_state = None
@@ -84,6 +89,7 @@ with st.sidebar:
     )
     st.header("Access Portal")
     mode = st.radio("Select User Type:", ["Candidate Access", "HR Admin"])
+    logger.info(f"User mode selected: {mode}")
     
     # End Interview Logic (Only visible if active in Candidate Mode)
     if st.session_state.get("interview_active", False) and mode == "Candidate Access":
@@ -96,6 +102,7 @@ with st.sidebar:
             
         if not st.session_state.confirm_end:
             if st.button("End Interview", type="primary"):
+                logger.info("User requested to end interview")
                 st.session_state.confirm_end = True
                 st.rerun()
         else:
@@ -172,6 +179,7 @@ if mode == "HR Admin":
             if not jd_text or not uploaded_files:
                 st.error("Please provide JD and Resumes.")
             else:
+                logger.info("Starting resume analysis")
                 with st.spinner("Analyzing resumes..."):
                     results = []
                     question_bank = parse_question_bank(question_file)
@@ -185,7 +193,8 @@ if mode == "HR Admin":
                         # Save to Database
                         # We store extracting topics for later interview use
                         topics = analysis.get("extracted_topics", [])
-                        add_candidate(name, score, analysis, topics, question_bank)
+                        yoe = analysis.get("years_of_experience", 0)
+                        add_candidate(name, score, analysis, topics, question_bank, yoe)
                         
                         results.append({
                             "Name": name,
@@ -369,11 +378,13 @@ elif mode == "Candidate Access":
                 st.error("Enter name.")
             else:
                 # Check DB
+                logger.info(f"Attempting login for candidate: {candidate_name}")
                 cand = get_candidate(candidate_name)
                 
                 if cand and cand['status'] == 'screened' and cand['resume_score'] >= 70:
                     st.session_state.current_candidate_name = cand['name'] # Store for saving later
                     st.success(f"Welcome, {cand['name']}! Starting Interview...")
+                    logger.info(f"Candidate {cand['name']} logged in successfully. Starting interview.")
                     st.session_state.interview_active = True
                     st.session_state.tab_switch_reset_token = str(time.time())
                     st.session_state.auto_ended = False
@@ -409,11 +420,13 @@ elif mode == "Candidate Access":
                         "question_count": 0,
                         "exit_session": False,
                         "question_bank": question_bank,
-                        "bank_index": 0
+                        "bank_index": 0,
+                        "years_of_experience": cand.get("years_of_experience", 0)
                     }
                     st.session_state.messages = []
                     
                     # Start graph
+                    logger.info("Invoking initial graph state")
                     result = st.session_state.graph.invoke(st.session_state.agent_state)
                     st.session_state.agent_state = result
                     if result.get("current_question"):
@@ -513,6 +526,7 @@ elif mode == "Candidate Access":
             
             if result.get("current_question"):
                  q_text = result["current_question"]
+                 logger.info(f"Generated Question: {q_text}")
                  c_audio = text_to_speech_bytes(q_text)
                  
                  st.session_state.current_q_start_time = time.time() # Reset Timer

@@ -18,3 +18,6 @@ class AgentState(TypedDict):
     exit_session: bool
     question_bank: List[str]
     bank_index: int
+    years_of_experience: float
+    last_question_style: Optional[str]
+    covered_concepts: List[str]
