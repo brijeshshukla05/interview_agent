@@ -1,60 +1,95 @@
 Job Title
-Senior Data Scientist | AI and Algorithmic Systems
 
-Location
-India | Hybrid
+Senior Software Engineer / Data & AI Platform Engineer
 
-Role Overview
-We are looking for a hands-on Data Scientist to design, build, and deploy AI-driven analytics and automation platforms across financial services, recruitment systems, and operational intelligence. This role focuses on machine learning model development, NLP-based automation, algorithmic trading systems, and end-to-end data pipelines deployed on cloud infrastructure.
+Job Summary
 
-You will work closely with business stakeholders, recruiters, and engineering teams to translate real-world problems into scalable ML solutions that drive profitability, efficiency, and data-driven decision-making.
+We are seeking a highly skilled and versatile Senior Software Engineer / Data & AI Platform Engineer to design, build, and scale cloud-native applications, data platforms, and AI-driven systems. The role combines backend and frontend engineering, data engineering, machine learning enablement, and DevOps practices to support mission-critical platforms in finance, healthcare, enterprise analytics, and intelligent automation environments.
 
-Key Responsibilities
+This role requires strong expertise in Java, Python, cloud platforms, distributed systems, data pipelines, APIs, and ML integration, along with a proven ability to deliver scalable, secure, and high-performance systems in regulated and high-availability environments.
 
-Design and deploy machine learning and deep learning models using Python, Scikit-learn, TensorFlow, PyTorch, XGBoost, and LightGBM for prediction, classification, and forecasting use cases
+Core Responsibilities
+Software Engineering and Full Stack Development
 
-Build and maintain algorithmic trading systems for crypto and forex markets using technical indicators such as EMA, RSI, MACD, and candlestick patterns
+• Design and develop microservices-based systems using Java, Spring Boot, Python, and RESTful APIs
+• Build and maintain frontend applications using React, Angular, or modern JavaScript frameworks
+• Develop secure, scalable backend services handling high-volume transactions and real-time data flows
+• Implement authentication and authorization using OAuth, JWT, and role-based access control
+• Maintain clean architecture, design patterns, and SOLID principles across services
 
-Develop NLP-based resume parsing and job matching systems using Python, SpaCy, and document processing libraries
+Data Engineering and Analytics Platforms
 
-Create end-to-end data pipelines for real-time and batch data ingestion using SQL, APIs, CSV, Excel, and JSON sources
+• Design and optimize ETL pipelines using Apache Spark, Airflow, AWS Glue, or Azure Data Factory
+• Build and maintain data lakes and warehouses on Snowflake, Redshift, BigQuery, or Synapse
+• Optimize SQL performance, indexing, and partitioning strategies for large-scale datasets
+• Enable real-time data streaming using Kafka, Kinesis, or RabbitMQ
+• Deliver BI-ready datasets for Power BI, Tableau, and executive dashboards
 
-Implement REST-based services using Flask or FastAPI and deploy containerized applications using Docker and cloud platforms
+Machine Learning and AI Enablement
 
-Build interactive dashboards and KPI reporting systems using Power BI, Tableau, Matplotlib, and Plotly for business and trading analytics
+• Develop and deploy ML pipelines using Scikit-learn, TensorFlow, PyTorch, and statistical modeling techniques
+• Integrate LLM and NLP workflows for document processing, resume screening, knowledge systems, and analytics automation
+• Support predictive modeling, forecasting, anomaly detection, and classification systems
+• Implement model monitoring, validation, and data quality checks
 
-Perform statistical analysis, A/B testing, and model validation to improve system accuracy and business impact
+Cloud, DevOps, and Infrastructure
 
-Collaborate in Agile teams to deliver production-grade AI systems and automation tools aligned with business goals
+• Architect and deploy applications on AWS, Azure, or GCP using containerization and serverless services
+• Build and maintain CI/CD pipelines using Jenkins, GitHub Actions, or GitLab CI
+• Implement Infrastructure as Code using Terraform or CloudFormation
+• Monitor systems using Prometheus, Grafana, ELK, and CloudWatch
+• Enforce security, compliance, and governance standards across environments
 
-Deploy and manage ML systems on cloud infrastructure using AWS, Vultr, or Linode with secure, low-latency architecture
+Collaboration and Delivery
 
-Required Qualifications
+• Work in Agile and Scrum environments, participating in sprint planning, reviews, and retrospectives
+• Collaborate with product managers, data scientists, analysts, and business stakeholders
+• Provide mentorship, code reviews, and technical leadership
+• Translate business requirements into scalable technical solutions
 
-4+ years of experience in Data Science, Machine Learning, or Applied AI roles
+Required Technical Skills
+Programming and Frameworks
 
-Strong programming skills in Python and SQL
+• Java, Python, JavaScript, SQL, Bash, TypeScript
+• Spring Boot, Flask, Django, Node.js, Express, React, Angular
 
-Hands-on experience with ML and DL frameworks including Scikit-learn, TensorFlow, Keras, PyTorch, and Gradient Boosting models
+Data and Analytics
 
-Experience building algorithmic trading, financial forecasting, or real-time analytics systems
+• Apache Spark, Airflow, dbt, ETL pipelines, Data Warehousing
+• PostgreSQL, MySQL, Oracle, Snowflake, Redshift, MongoDB, DynamoDB
+• Power BI, Tableau, Looker, Excel automation
 
-Proficiency in NLP techniques for document parsing, skill extraction, and classification
+Machine Learning and AI
 
-Experience developing REST APIs using Flask or FastAPI and deploying services with Docker
+• Scikit-learn, TensorFlow, PyTorch, NLP, LLM integration
+• Predictive modeling, A/B testing, time series forecasting, anomaly detection
 
-Strong background in data visualization and BI tools such as Power BI and Tableau
+Cloud and DevOps
 
-Experience working in Agile and SDLC-driven development environments
+• AWS, Azure, GCP
+• Docker, Kubernetes, Helm, Terraform
+• Jenkins, GitHub Actions, GitLab CI
 
-Preferred Skills
+Security and Compliance
 
-Experience integrating trading platforms such as MetaTrader, Binance, or Telegram Bots
+• OAuth, JWT, RBAC, API security
+• Data governance, HIPAA, GDPR, SOX, enterprise compliance standards
 
-Cloud deployment experience using AWS or VPS platforms
+Preferred Qualifications
 
-Strong background in A/B testing, statistical modeling, and KPI-driven performance tracking
+• Experience building platforms in finance, healthcare, logistics, or enterprise SaaS environments
+• Hands-on experience with streaming architectures and real-time analytics
+• Experience with ML model deployment and MLOps workflows
+• Background in data governance, auditability, and regulatory compliance systems
+• Experience working with high-scale distributed systems and fault-tolerant architectures
 
-Exposure to recruitment automation or CRM analytics platforms
+Education
 
-Experience mentoring or training junior data professionals
+• Bachelor’s or Master’s degree in Computer Science, Data Science, Engineering, or related field
+
+What Success Looks Like
+
+• Delivers scalable, secure, and high-performance systems in production
+• Builds data platforms and ML-enabled services that drive measurable business impact
+• Maintains 95%+ code quality, test coverage, and deployment reliability
+• Acts as a technical leader and cross-functional collaborator across engineering and analytics teams

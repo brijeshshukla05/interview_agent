@@ -52,6 +52,9 @@ def generate_pdf_report(candidate_name, interview_data, avg_score, resume_score,
         pdf.cell(200, 8, txt="Recommendation", ln=True)
         pdf.set_font("Arial", size=11)
         pdf.cell(200, 6, txt=f"Decision: {recommendation.get('decision', 'N/A')}", ln=True)
+        if recommendation.get("auto_ended"):
+            reason = recommendation.get("auto_end_reason", "Auto-ended")
+            pdf.cell(200, 6, txt=f"Auto-Ended: Yes ({reason})", ln=True)
         pdf.cell(200, 6, txt=f"Performance: {recommendation.get('performance', 'N/A')}", ln=True)
         pdf.multi_cell(0, 6, f"Score-Based Summary: {recommendation.get('score_based_summary', 'N/A')}")
         pdf.cell(200, 6, txt=f"Knowledge Level: {recommendation.get('knowledge_level', 'N/A')}", ln=True)

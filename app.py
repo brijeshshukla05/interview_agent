@@ -14,6 +14,7 @@ from agent.logger import get_logger
 import base64
 import time
 import json
+import streamlit.components.v1 as components
 
 logger = get_logger(__name__)
 
@@ -23,6 +24,33 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 st.set_page_config(page_title="AI Interview Agent", page_icon="📝")
 
 st.title("🤖 AI Interview Agent Platform")
+
+# Custom component for reliable tab-switch detection
+tab_switch_tracker = components.declare_component(
+    "tab_switch_tracker",
+    path=os.path.join(os.path.dirname(__file__), "components", "tab_switch_tracker"),
+)
+
+def end_interview():
+    if st.session_state.get("agent_state") is not None:
+        evals = st.session_state.agent_state.get("evaluations", [])
+        if not evals and "current_candidate_name" in st.session_state:
+            avg_score = 0.0
+            cand = get_candidate(st.session_state.current_candidate_name)
+            resume_score = cand.get("resume_score", 0) if cand else 0
+            rec = generate_hr_recommendation([], avg_score, resume_score)
+            rec["auto_ended"] = bool(st.session_state.get("auto_ended", False))
+            if rec["auto_ended"]:
+                rec["auto_end_reason"] = "Tab switch limit reached"
+            update_interview_result(
+                st.session_state.current_candidate_name,
+                [],
+                avg_score,
+                final_summary=json.dumps(rec),
+                decision=rec.get("decision")
+            )
+    st.session_state.interview_active = False
+    st.session_state.confirm_end = False
 
 # Initialize DB
 logger.info("Initializing Database")
@@ -38,10 +66,27 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "interview_active" not in st.session_state:
     st.session_state.interview_active = False
+if "question_audio" not in st.session_state:
+    st.session_state.question_audio = {}
+if "pending_voice_text" not in st.session_state:
+    st.session_state.pending_voice_text = ""
+if "clear_answer_input" not in st.session_state:
+    st.session_state.clear_answer_input = False
+if "current_q_idx" not in st.session_state:
+    st.session_state.current_q_idx = None
 
 # Sidebar Navigation
 with st.sidebar:
-    st.image("https://img.freepik.com/free-vector/floating-robot_78370-3669.jpg", width=150) # Avatar
+    st.markdown(
+        """
+        <style>
+          section[data-testid="stSidebar"] .block-container {
+            padding-top: 0.5rem;
+          }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
     st.header("Access Portal")
     mode = st.radio("Select User Type:", ["Candidate Access", "HR Admin"])
     logger.info(f"User mode selected: {mode}")
@@ -65,28 +110,36 @@ with st.sidebar:
             col_y, col_n = st.columns(2)
             with col_y:
                 if st.button("Yes"):
-                    # If interview ends without any attempts, mark as completed with 0 score
-                    if st.session_state.get("agent_state") is not None:
-                        evals = st.session_state.agent_state.get("evaluations", [])
-                        if not evals and "current_candidate_name" in st.session_state:
-                            avg_score = 0.0
-                            cand = get_candidate(st.session_state.current_candidate_name)
-                            resume_score = cand.get("resume_score", 0) if cand else 0
-                            rec = generate_hr_recommendation([], avg_score, resume_score)
-                            update_interview_result(
-                                st.session_state.current_candidate_name,
-                                [],
-                                avg_score,
-                                final_summary=json.dumps(rec),
-                                decision=rec.get("decision")
-                            )
-                    st.session_state.interview_active = False
-                    st.session_state.confirm_end = False
+                    st.session_state.auto_ended = False
+                    end_interview()
                     st.rerun()
             with col_n:
                 if st.button("No"):
                     st.session_state.confirm_end = False
                     st.rerun()
+
+        # Voice controls in navigation panel
+        st.write("🎙️ Answer via Voice:")
+        current_q_idx = st.session_state.current_q_idx
+        if current_q_idx is None:
+            assistant_count = sum(1 for m in st.session_state.messages if m.get("role") == "assistant")
+            current_q_idx = assistant_count - 1 if assistant_count > 0 else None
+            st.session_state.current_q_idx = current_q_idx
+        if current_q_idx is None:
+            st.info("No active question yet.")
+        else:
+            st.write("Use Start/Stop Recording below.")
+            audio_input = mic_recorder(
+                start_prompt="Start Recording",
+                stop_prompt="Stop Recording",
+                key="recorder_sidebar",
+                format="wav",
+            )
+            if audio_input:
+                st.session_state.question_audio[current_q_idx] = audio_input["bytes"]
+                voice_text = audio_bytes_to_text(audio_input["bytes"])
+                if voice_text:
+                    st.session_state.pending_voice_text = voice_text
 
 # ---------------- HR ADMIN SECTION ----------------
 if mode == "HR Admin":
@@ -257,6 +310,9 @@ if mode == "HR Admin":
                 rec = parse_recommendation(c.get("final_summary"))
                 with st.expander(f"{c['name']} — {rec.get('decision', 'Pending')}"):
                     st.write(f"**Decision:** {rec.get('decision', 'N/A')}")
+                    if rec.get("auto_ended"):
+                        reason = rec.get("auto_end_reason", "Auto-ended")
+                        st.write(f"**Auto-Ended:** Yes ({reason})")
                     st.write(f"**Performance:** {rec.get('performance', 'N/A')}")
                     st.write(f"**Score-Based Summary:** {rec.get('score_based_summary', 'N/A')}")
                     st.write(f"**Knowledge Level:** {rec.get('knowledge_level', 'N/A')}")
@@ -330,6 +386,10 @@ elif mode == "Candidate Access":
                     st.success(f"Welcome, {cand['name']}! Starting Interview...")
                     logger.info(f"Candidate {cand['name']} logged in successfully. Starting interview.")
                     st.session_state.interview_active = True
+                    st.session_state.tab_switch_reset_token = str(time.time())
+                    st.session_state.auto_ended = False
+                    st.session_state.question_audio = {}
+                    st.session_state.pending_voice_text = ""
                     
                     # Reset Proctoring Logic (Optional, JS persists but we can ignore previous counts if we wanted)
                     # For now, we count specific session anomalies.
@@ -376,6 +436,9 @@ elif mode == "Candidate Access":
                         st.session_state.current_q_start_time = time.time() # Start Timer
                         st.session_state.messages.append({"role": "assistant", "content": q_text, "audio": c_audio})
                         st.session_state.agent_state["history"].append({"role": "assistant", "content": q_text})
+                        st.session_state.current_q_idx = len(
+                            [m for m in st.session_state.messages if m.get("role") == "assistant"]
+                        ) - 1
                     st.rerun()
                 else:
                     if cand and cand.get("status") == "completed":
@@ -387,26 +450,49 @@ elif mode == "Candidate Access":
         # Active Interview
         st.header("🎤 Interview Session")
 
-        # Display Chat History
+        # Tab switch tracking (auto-end on second switch)
+        if "current_candidate_name" in st.session_state:
+            name = st.session_state.current_candidate_name
+            auto_submit_event = tab_switch_tracker(
+                local_key=f"tab_switch_local_{name}",
+                auto_key=f"tab_switch_autosubmit_{name}",
+                session_key=f"tab_switch_session_{name}",
+                reset_token=st.session_state.get("tab_switch_reset_token", ""),
+                default="",
+            )
+            if auto_submit_event == "auto_submit":
+                st.session_state.auto_ended = True
+                end_interview()
+                st.rerun()
+
+        # Question Cards (recording controls per question)
+        qa_pairs = []
         for msg in st.session_state.messages:
-            with st.chat_message(msg["role"]):
-                st.markdown(msg["content"])
-                if msg["role"] == "assistant" and "audio" in msg and msg["audio"]:
-                     st.audio(msg["audio"], format="audio/mp3")
+            if msg["role"] == "assistant":
+                qa_pairs.append({"question": msg, "answer": None})
+            elif msg["role"] == "user" and qa_pairs and qa_pairs[-1]["answer"] is None:
+                qa_pairs[-1]["answer"] = msg
 
-        # Voice Input
-        st.write("🎙️ Answer via Voice:")
-        audio_input = mic_recorder(start_prompt="Start Recording", stop_prompt="Stop Recording", key="recorder", format="wav")
-        voice_text = ""
-        if audio_input:
-            voice_text = audio_bytes_to_text(audio_input['bytes'])
-            if voice_text: st.info(f"Transcribed: {voice_text}")
+        current_q_idx = len(qa_pairs) - 1 if qa_pairs else None
+        st.session_state.current_q_idx = current_q_idx
 
-        # User Input
-        # User Input
+        for i, pair in enumerate(qa_pairs):
+            q_msg = pair["question"]
+            st.markdown(f"**Q{i+1}:** {q_msg['content']}")
+            if q_msg.get("audio"):
+                st.audio(q_msg["audio"], format="audio/mp3")
+            if pair.get("answer"):
+                st.markdown(f"**Answer:** {pair['answer']['content']}")
 
+            if i in st.session_state.question_audio:
+                st.audio(st.session_state.question_audio[i], format="audio/wav")
+            st.divider()
 
+        # Static recording controls parallel to answer input
+        # Static answer input (anchored to bottom by Streamlit)
         prompt = st.chat_input("Your answer...")
+
+        # User Input
         final_answer = None
         
         if st.session_state.get("skip_triggered"):
@@ -414,9 +500,9 @@ elif mode == "Candidate Access":
             st.session_state.skip_triggered = False # Reset
         elif prompt:
             final_answer = prompt
-        elif voice_text and st.session_state.get("last_audio_id") != id(audio_input['bytes']):
-             final_answer = voice_text
-             st.session_state.last_audio_id = id(audio_input['bytes'])
+        elif st.session_state.pending_voice_text:
+             final_answer = st.session_state.pending_voice_text
+             st.session_state.pending_voice_text = ""
 
         if final_answer:
             # Calculate Duration
@@ -449,7 +535,11 @@ elif mode == "Candidate Access":
                      if c_audio: st.audio(c_audio, format="audio/mp3")
                  st.session_state.messages.append({"role": "assistant", "content": q_text, "audio": c_audio})
                  st.session_state.agent_state["history"].append({"role": "assistant", "content": q_text})
+                 st.session_state.current_q_idx = len(
+                     [m for m in st.session_state.messages if m.get("role") == "assistant"]
+                 ) - 1
             else:
+                st.session_state.auto_ended = False
                 st.session_state.interview_active = False
                 st.rerun()
 
@@ -483,6 +573,9 @@ if not st.session_state.interview_active and st.session_state.agent_state and st
             st.session_state.hr_recommendation = generate_hr_recommendation(evals, avg_score, resume_score)
 
         rec = st.session_state.hr_recommendation
+        rec["auto_ended"] = bool(st.session_state.get("auto_ended", False))
+        if rec["auto_ended"]:
+            rec["auto_end_reason"] = "Tab switch limit reached"
         update_interview_result(
             st.session_state.current_candidate_name,
             evals,

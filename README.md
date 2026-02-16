@@ -190,4 +190,3 @@ Below is a complete, file-by-file and function-by-function explanation of how th
 - PDF report download with full summary.
 - LLM performance controls (token caps + timeouts).
 - CLI interview mode.
-

@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { margin: 0; font-family: Arial, sans-serif; }
+      .box {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        width: 260px;
+      }
+      .label { font-size: 12px; color: #666; }
+      .count { font-size: 24px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <div class="label">Tab Switch Count</div>
+      <div id="ts_count" class="count">0</div>
+    </div>
+
+    <script>
+      (function () {
+        let localKey = null;
+        let autoKey = null;
+        let sessionKey = null;
+        let resetToken = null;
+        let count = 0;
+        let lastBumpAt = 0;
+        const el = document.getElementById("ts_count");
+
+        function postToStreamlit(type, payload) {
+          window.parent.postMessage(
+            Object.assign({ isStreamlitMessage: true, type: type }, payload || {}),
+            "*"
+          );
+        }
+
+        function setFrameHeight(h) {
+          postToStreamlit("streamlit:setFrameHeight", { height: h });
+        }
+
+        function setReady() {
+          postToStreamlit("streamlit:componentReady", { apiVersion: 1 });
+        }
+
+        function setValue(value) {
+          postToStreamlit("streamlit:setComponentValue", { value: value });
+        }
+
+        function loadCount() {
+          if (!localKey) return;
+          count = Number(localStorage.getItem(localKey) || "0");
+        }
+
+        function saveCount() {
+          if (!localKey) return;
+          localStorage.setItem(localKey, String(count));
+        }
+
+        function updateUI() {
+          if (el) el.textContent = String(count);
+        }
+
+        function resetIfNeeded() {
+          if (!sessionKey || resetToken == null) return;
+          const lastToken = localStorage.getItem(sessionKey);
+          if (lastToken !== String(resetToken)) {
+            localStorage.setItem(sessionKey, String(resetToken));
+            if (localKey) localStorage.setItem(localKey, "0");
+            if (autoKey) localStorage.removeItem(autoKey);
+          }
+        }
+
+        function bump() {
+          const now = Date.now();
+          if (now - lastBumpAt < 800) return;
+          lastBumpAt = now;
+          count += 1;
+          saveCount();
+          updateUI();
+          if (count === 1) {
+            alert("Warning: Tab switch detected. Next switch will auto-submit the interview.");
+          } else if (count >= 2) {
+            if (autoKey) localStorage.setItem(autoKey, "1");
+            setValue("auto_submit");
+          }
+        }
+
+        function init() {
+          resetIfNeeded();
+          loadCount();
+          updateUI();
+          if (autoKey && localStorage.getItem(autoKey) === "1") {
+            setValue("auto_submit");
+          }
+        }
+
+        window.addEventListener("message", function (event) {
+          const data = event.data;
+          if (!data || data.type !== "streamlit:render") return;
+          const args = data.args || {};
+          localKey = args.local_key || localKey;
+          autoKey = args.auto_key || autoKey;
+          sessionKey = args.session_key || sessionKey;
+          resetToken = args.reset_token || resetToken;
+          init();
+        });
+
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) bump();
+        });
+        window.addEventListener("blur", bump);
+        window.addEventListener("pagehide", bump);
+
+        setReady();
+        setFrameHeight(100);
+      })();
+    </script>
+  </body>
+</html>
