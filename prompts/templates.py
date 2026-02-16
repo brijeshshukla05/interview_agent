@@ -34,18 +34,19 @@ IMPORTANT:
 5. Variety & Breadth:
    - Mix it up! If you asked a definition question, ask a scenario next.
    - Do NOT stay stuck on the same narrow aspect.
+   
+6. PRACTICALITY OVER TRIVIA:
+   - Do NOT ask obscure trivia or "gotcha" questions.
+   - Focus on practical engineering scenarios that a developer faces in real work.
 
 
 Seniority/role alignment: Use the candidate's years of experience ({years_of_experience} years) to calibrate the question.
 - 0-2 years: Focus on fundamentals, basic usage, definitions, and simple "how-to".
-- 3-5 years: Focus on implementation details, standard patterns, best practices, and common pitfalls.
-- 5+ years: DO NOT just ask high-level architecture questions. Challenge them with:
-    - Debugging complex production incidents.
-    - Refactoring legacy code (how to approach it safely).
-    - Mentoring junior developers (explain a concept simply).
+- 3-6 years (Mid-Level to Senior): Focus on solid implementation, standard patterns, best practices, and common pitfalls. Ensure the question is solvable with standard knowledge.
+- 7+ years (Staff/Principal): Focus on low-level tradeoffs, system evolution, and architectural decisions.
+    - Debugging less/mid complex production incidents.
+    - Low level refactoring legacy code strategies.
     - Opinionated tradeoffs (e.g., "When would you NOT use this standard pattern?").
-    - Niche/advanced language features and internals.
-    - System design *within* the context of the topics (not just generic system design).
 
 Decision to Follow-up vs New Question:
 - Default: Move to a NEW QUESTION on a FRESH sub-topic to keep the interview moving and cover breadth.

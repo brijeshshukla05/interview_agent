@@ -4,9 +4,17 @@ from prompts.templates import TOPIC_SOLICITATION, QUESTION_GENERATION, EVALUATIO
 from langchain_core.messages import HumanMessage, SystemMessage
 import config
 import random
+import re
 from agent.logger import get_logger
 
 logger = get_logger(__name__)
+
+
+def _normalize_question_text(text: str) -> str:
+    """Normalize question text so duplicates can be detected reliably."""
+    cleaned = re.sub(r"[*_`#>\-]", " ", (text or "").lower())
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned
 
 def get_topics(state: AgentState):
     """
@@ -34,12 +42,18 @@ def generate_question(state: AgentState):
     bank_index = state.get("bank_index", 0)
     yoe = state.get("years_of_experience", 0)
     logger.info(f"Generating question for candidate with {yoe} years of experience")
+    selected_style = state.get("last_question_style")
     
     # Format history for prompt
     history_str = "\n".join([f"{msg['role']}: {msg['content']}" for msg in history]) # Use full context for variety check
     
     # Always ask conceptual/theoretical questions (no coding/practical)
     question_type = "conceptual/theoretical"
+    asked_questions = {
+        _normalize_question_text(m.get("content", ""))
+        for m in history
+        if m.get("role") == "assistant" and m.get("content")
+    }
 
     use_bank = False
     if question_bank:
@@ -50,6 +64,7 @@ def generate_question(state: AgentState):
         pick_idx = random.randrange(len(question_bank))
         question_text = question_bank.pop(pick_idx).strip()
         logger.info(f"Picked question from bank: {question_text}")
+        selected_style = "Question Bank"
         bank_index += 1
     else:
         logger.debug("Generating question via LLM")
@@ -60,9 +75,6 @@ def generate_question(state: AgentState):
         if not valid_topics:
             valid_topics = ["General Technical"]
         
-        focus_topic = random.choice(valid_topics)
-        logger.info(f"Selected Focus Topic: {focus_topic}")
-
         # Style Rotation Logic
         STYLES = [
             "Scenario/Problem Solving",
@@ -71,31 +83,51 @@ def generate_question(state: AgentState):
             "Comparative Analysis",
             "System Design/Architecture"
         ]
-        last_style = state.get("last_question_style")
-        available_styles = [s for s in STYLES if s != last_style]
-        selected_style = random.choice(available_styles)
-        logger.info(f"Selected Question Style: {selected_style}")
-
-        # Concept Exclusion Logic (Extract last 3 questions to avoid)
-        # We explicitly list them so the LLM knows what to semantic-avoid
-        recent_history = [m["content"] for m in history if m["role"] == "assistant"][-3:]
-        avoid_concepts = "\n- ".join(recent_history) if recent_history else "None"
-
-        prompt = QUESTION_GENERATION.format(
-            topics=topics,
-            complexity_level=complexity,
-            history=history_str,
-            question_type=question_type,
-            years_of_experience=state.get("years_of_experience", 0),
-            focus_topic=focus_topic,
-            style=selected_style,
-            avoid_concepts=avoid_concepts
-        )
-        
         llm = get_llm(temperature=config.TEMPERATURE_ASK, max_tokens=config.MAX_TOKENS_QUESTION)
-        response = llm.invoke([HumanMessage(content=prompt)])
-        question_text = response.content.strip()
-        logger.info(f"Generated Question: {question_text}")
+        question_text = None
+
+        # Retry generation with varied topic/style if we detect a duplicate.
+        for _ in range(4):
+            focus_topic = random.choice(valid_topics)
+            logger.info(f"Selected Focus Topic: {focus_topic}")
+
+            last_style = state.get("last_question_style")
+            available_styles = [s for s in STYLES if s != last_style]
+            selected_style = random.choice(available_styles)
+            logger.info(f"Selected Question Style: {selected_style}")
+
+            # Exclude the last few asked questions, plus exact asked list for hard duplicate checks.
+            recent_history = [m["content"] for m in history if m["role"] == "assistant"][-5:]
+            avoid_concepts = "\n- ".join(recent_history) if recent_history else "None"
+
+            prompt = QUESTION_GENERATION.format(
+                topics=topics,
+                complexity_level=complexity,
+                history=history_str,
+                question_type=question_type,
+                years_of_experience=state.get("years_of_experience", 0),
+                focus_topic=focus_topic,
+                style=selected_style,
+                avoid_concepts=avoid_concepts
+            )
+
+            response = llm.invoke([HumanMessage(content=prompt)])
+            candidate_question = response.content.strip()
+            normalized_candidate = _normalize_question_text(candidate_question)
+            if normalized_candidate and normalized_candidate not in asked_questions:
+                question_text = candidate_question
+                logger.info(f"Generated Question: {question_text}")
+                break
+            logger.warning("Duplicate question generated by LLM; retrying with different style/topic")
+
+        if not question_text:
+            # Last-resort fallback to avoid crashing or repeating.
+            question_text = (
+                f"Explain one production challenge you have handled in {random.choice(valid_topics)} "
+                "and walk through trade-offs, diagnostics, and final resolution."
+            )
+            selected_style = "Fallback/No-Repeat"
+            logger.warning("Using fallback question after duplicate generation retries")
     
     # Update state
     return {
