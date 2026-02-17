@@ -230,9 +230,25 @@ def screen_resume(resume_text: str, jd_text: str):
         )
         
         llm = get_llm(temperature=config.TEMPERATURE_EVAL, max_tokens=config.MAX_TOKENS_EVAL)
-        response = llm.invoke([HumanMessage(content=prompt)])
         
-        return extract_json(response.content)
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = llm.invoke([HumanMessage(content=prompt)])
+                result = extract_json(response.content)
+                
+                # Check if it was a parser error (score 0 + reasoning "Parser Error")
+                if result.get("score") == 0 and result.get("reasoning") == "Parser Error":
+                    logger.warning(f"Screening attempt {attempt+1}/{max_retries} failed to parse. Retrying...")
+                    time.sleep(1) # Brief pause before retry
+                    continue
+                    
+                return result
+            except Exception as e:
+                logger.warning(f"Screening attempt {attempt+1}/{max_retries} raised exception: {e}")
+                time.sleep(1)
+        
+        return {"score": 0, "reasoning": "Failed to screen resume after retries.", "name": "Unknown"}
     except Exception as e:
         logger.error(f"Error screening resume: {e}")
         return {"score": 0, "reasoning": f"Error: {str(e)}", "name": "Unknown"}

@@ -34,18 +34,23 @@ IMPORTANT:
 5. Variety & Breadth:
    - Mix it up! If you asked a definition question, ask a scenario next.
    - Do NOT stay stuck on the same narrow aspect.
+   
+6. PRACTICALITY OVER TRIVIA:
+   - Do NOT ask obscure trivia or "gotcha" questions.
+   - Focus on practical engineering scenarios that a developer faces in real work.
+
+6. PRACTICALITY OVER TRIVIA:
+   - Do NOT ask obscure trivia or "gotcha" questions.
+   - Focus on practical engineering scenarios that a developer faces in real work.
 
 
 Seniority/role alignment: Use the candidate's years of experience ({years_of_experience} years) to calibrate the question.
 - 0-2 years: Focus on fundamentals, basic usage, definitions, and simple "how-to".
-- 3-5 years: Focus on implementation details, standard patterns, best practices, and common pitfalls.
-- 5+ years: DO NOT just ask high-level architecture questions. Challenge them with:
-    - Debugging complex production incidents.
-    - Refactoring legacy code (how to approach it safely).
-    - Mentoring junior developers (explain a concept simply).
+- 3-6 years (Mid-Level to Senior): Focus on solid implementation, standard patterns, best practices, and common pitfalls. Ensure the question is solvable with standard knowledge.
+- 7+ years (Staff/Principal): Focus on low-level tradeoffs, system evolution, and architectural decisions.
+    - Debugging less/mid complex production incidents.
+    - Low level refactoring legacy code strategies.
     - Opinionated tradeoffs (e.g., "When would you NOT use this standard pattern?").
-    - Niche/advanced language features and internals.
-    - System design *within* the context of the topics (not just generic system design).
 
 Decision to Follow-up vs New Question:
 - Default: Move to a NEW QUESTION on a FRESH sub-topic to keep the interview moving and cover breadth.
@@ -74,8 +79,8 @@ Evaluate the answer based on:
 
 Provide a score out of 10 (integer).
 Scoring guidance: Be a balanced evaluator. Avoid extremes unless clearly justified.
-If an answer is generally correct with minor gaps, lean toward a moderate score (typically 6–7).
-Use very high (9–10) only for excellent, complete answers, and very low (0–3) only for clearly incorrect or empty answers.
+If an answer is generally correct with minor gaps, lean toward a moderate score (typically 6-7).
+Use very high (9-10) only for excellent, complete answers, and very low (0-3) only for clearly incorrect or empty answers.
 Provide brief feedback explaining the score.
 
 Format your response exactly as valid JSON:
@@ -86,7 +91,7 @@ Format your response exactly as valid JSON:
 """
 
 RESUME_SCREENING_PROMPT = """You are an expert HR Recruiter and Technical Hiring Manager.
-Your goal is to screen a candidate's resume against a Job Description (JD).
+Your goal is to screen a candidate's resume against a Job Description (JD) accurately and consistently.
 
 Job Description:
 {jd_text}
@@ -94,27 +99,96 @@ Job Description:
 Resume content:
 {resume_text}
 
-Task:
-1. Extract the candidate's full name from the resume. If not found, use "Unknown Candidate".
-2. Analyze the resume against the JD keywords and requirements.
-3. Identify the top 3-5 technical topics or skills that overlap between the JD and Resume.
-4. Extract experience (CRITICAL):
-   - LIST all work periods found (e.g., "Jan 2020 - Present", "2018 - 2020").
-   - For "Present", "Current", or "Now" (case-insensitive), use the current date: {current_date}.
-   - IGNORE any text after the date (e.g., in "2022 - current Austin, TX", read as "2022 - current").
-   - Calculate the duration for each non-overlapping period.
-   - Sum them up to get "Total Years of Experience".
-   - Round to the nearest 0.5 years.
-5. Assign a match score from 0 to 100.
-6. Provide a brief reasoning for the score.
+Current date (for calculations):
+{current_date}
 
-CRITICAL: Return the result as a valid JSON object. Do not add any markdown blocks or extra text.
+TASKS:
+
+1. Candidate Name Extraction
+- Extract the candidate's full name from the resume.
+- If not clearly found, use "Unknown Candidate".
+
+2. Skill & Keyword Matching
+- Analyze the resume against the JD requirements.
+- Identify the TOP 3-5 overlapping technical skills or topics.
+- Focus on core technologies, frameworks, tools, and architecture concepts.
+
+3. EXPERIENCE CALCULATION (STRICT MODE - CRITICAL)
+
+You MUST follow these steps EXACTLY. Do NOT guess. Do NOT rely on claimed experience.
+
+STEP 1: DATE EXTRACTION
+- Scan the ENTIRE resume and extract ALL work-related date ranges.
+- Valid formats include (but are not limited to):
+  - "Jan 2020 - Present"
+  - "2022 - current"
+  - "June 2018-Present"
+  - "2019 to 2021"
+  - "Aug 2016 - May 2017"
+- Ignore education dates unless explicitly labeled as work (e.g., Research Intern).
+- Ignore summary claims such as "3+ years experience".
+
+STEP 2: DATE NORMALIZATION
+- Convert each extracted range into:
+  {{ "start": YYYY-MM, "end": YYYY-MM }}
+- Rules:
+  - If month is missing, assume January.
+  - If end date is "Present", "Current", or "Now" (case-insensitive), use {current_date}.
+  - Remove locations or extra text after dates.
+  - Identify internships explicitly and tag them as "internship".
+
+STEP 3: OVERLAP HANDLING
+- Merge overlapping date ranges.
+- If multiple roles overlap in time, count the time ONLY ONCE.
+- Internship rules:
+  - Standalone internships count at 50% weight.
+  - Internships overlapping with full-time roles are ignored.
+
+STEP 4: EXPERIENCE SUMMATION
+- Calculate total experience in MONTHS.
+- Convert months to years.
+- Round to the nearest 0.5 years.
+
+STEP 5: VALIDATION RULES
+- If calculated experience differs from claimed experience, TRUST the calculated value.
+- If NO valid work dates are found:
+  - Set years_of_experience = 0
+  - Explicitly mention this in reasoning.
+
+4. SCORING RUBRIC (0-100)
+
+- 90-100: Perfect match - all required + desired skills, correct experience level.
+- 80-89: Strong match - all core skills, minor gaps.
+- 70-79: Good match - most core skills, 1-2 missing.
+- 60-69: Fair match - partial relevance, notable gaps.
+- <60: Poor match - mostly irrelevant.
+
+DEDUCTIONS:
+- Missing critical JD keywords.
+- Significant experience mismatch (too junior or too senior).
+- Vague, unclear, or poorly structured resume.
+
+RULES:
+- Do NOT default to safe scores (e.g., 85).
+- Use the full scoring range logically.
+
+CALCULATE EVERYTHING INTERNALLY. YOUR ONLY OUTPUT MUST BE THE JSON OBJECT.
+
+
+CRITICAL OUTPUT COMPLIANCE:
+1. You MUST return ONLY a raw JSON object.
+2. The output MUST start with `{{` and end with `}}`.
+3. Do NOT wrap the output in markdown code blocks (e.g. ```json ... ```).
+4. Do NOT include any preamble or explanation text outside the JSON.
+5. If you cannot extract specific fields, use reasonable defaults or "Unknown".
+
+Example Output Structure:
 {{
-    "name": "<Candidate Name>",
-    "score": <int 0-100>,
-    "years_of_experience": <number>,
-    "reasoning": "<string>",
-    "extracted_topics": ["<Topic1>", "<Topic2>", "<Topic3>"]
+    "name": "Candidate Name",
+    "score": 0,
+    "years_of_experience": 0,
+    "reasoning": "Explanation here",
+    "extracted_topics": ["Topic1", "Topic2"]
 }}
 """
 
