@@ -4,7 +4,7 @@ import os
 import pandas as pd
 from agent.graph import create_graph
 from agent.state import AgentState
-from agent.resume import extract_text_from_pdf, screen_resume
+from agent.resume import extract_resume_content, screen_resume
 import config
 from agent.audio import text_to_speech_bytes, audio_bytes_to_text
 from streamlit_mic_recorder import mic_recorder
@@ -184,8 +184,34 @@ if mode == "HR Admin":
                     results = []
                     question_bank = parse_question_bank(question_file)
                     for uploaded_file in uploaded_files:
-                        resume_text = extract_text_from_pdf(uploaded_file)
-                        analysis = screen_resume(resume_text, jd_text)
+                        extraction = extract_resume_content(uploaded_file)
+                        resume_text = extraction.get("text", "")
+
+                        if extraction["status"] in {"corrupt", "unreadable"}:
+                            logger.warning(
+                                "Skipping screening for %s due to extraction failure: %s (%s)",
+                                uploaded_file.name,
+                                extraction.get("error_code"),
+                                extraction.get("error_message"),
+                            )
+                            analysis = {
+                                "name": os.path.splitext(uploaded_file.name)[0],
+                                "score": 0,
+                                "reasoning": (
+                                    f"Resume parsing failed: {extraction.get('error_code', 'UNKNOWN_ERROR')} - "
+                                    f"{extraction.get('error_message', 'Unable to read PDF')}"
+                                ),
+                                "extracted_topics": [],
+                                "years_of_experience": 0,
+                            }
+                        else:
+                            analysis = screen_resume(resume_text, jd_text)
+                            analysis["extraction_status"] = extraction.get("status")
+                            analysis["ocr_used"] = extraction.get("ocr_used")
+                            if extraction.get("error_code"):
+                                analysis["extraction_error_code"] = extraction.get("error_code")
+                            if extraction.get("error_message"):
+                                analysis["extraction_error_message"] = extraction.get("error_message")
                         
                         name = analysis.get("name", "Unknown")
                         score = analysis.get("score", 0)
@@ -199,7 +225,11 @@ if mode == "HR Admin":
                         results.append({
                             "Name": name,
                             "Score": score,
-                            "Status": "Saved to DB"
+                            "Status": (
+                                f"Saved (parse: {extraction.get('status')})"
+                                if extraction["status"] not in {"corrupt", "unreadable"}
+                                else f"Saved (parse failed: {extraction.get('error_code')})"
+                            )
                         })
                     st.success("Analysis Complete! Candidates saved to Database.")
                     st.dataframe(pd.DataFrame(results))

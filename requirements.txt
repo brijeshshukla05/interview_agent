@@ -4,6 +4,10 @@ langchain-openai
 pydantic
 streamlit
 pypdf
+pymupdf
+Pillow
+pytesseract
+rapidocr-onnxruntime
 gTTS
 SpeechRecognition
 streamlit-mic-recorder
