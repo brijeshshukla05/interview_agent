@@ -79,8 +79,8 @@ Evaluate the answer based on:
 
 Provide a score out of 10 (integer).
 Scoring guidance: Be a balanced evaluator. Avoid extremes unless clearly justified.
-If an answer is generally correct with minor gaps, lean toward a moderate score (typically 6–7).
-Use very high (9–10) only for excellent, complete answers, and very low (0–3) only for clearly incorrect or empty answers.
+If an answer is generally correct with minor gaps, lean toward a moderate score (typically 6-7).
+Use very high (9-10) only for excellent, complete answers, and very low (0-3) only for clearly incorrect or empty answers.
 Provide brief feedback explaining the score.
 
 Format your response exactly as valid JSON:
@@ -110,10 +110,10 @@ TASKS:
 
 2. Skill & Keyword Matching
 - Analyze the resume against the JD requirements.
-- Identify the TOP 3–5 overlapping technical skills or topics.
+- Identify the TOP 3-5 overlapping technical skills or topics.
 - Focus on core technologies, frameworks, tools, and architecture concepts.
 
-3. EXPERIENCE CALCULATION (STRICT MODE – CRITICAL)
+3. EXPERIENCE CALCULATION (STRICT MODE - CRITICAL)
 
 You MUST follow these steps EXACTLY. Do NOT guess. Do NOT rely on claimed experience.
 
@@ -122,9 +122,9 @@ STEP 1: DATE EXTRACTION
 - Valid formats include (but are not limited to):
   - "Jan 2020 - Present"
   - "2022 - current"
-  - "June 2018–Present"
+  - "June 2018-Present"
   - "2019 to 2021"
-  - "Aug 2016 – May 2017"
+  - "Aug 2016 - May 2017"
 - Ignore education dates unless explicitly labeled as work (e.g., Research Intern).
 - Ignore summary claims such as "3+ years experience".
 
@@ -155,13 +155,13 @@ STEP 5: VALIDATION RULES
   - Set years_of_experience = 0
   - Explicitly mention this in reasoning.
 
-4. SCORING RUBRIC (0–100)
+4. SCORING RUBRIC (0-100)
 
-- 90–100: Perfect match – all required + desired skills, correct experience level.
-- 80–89: Strong match – all core skills, minor gaps.
-- 70–79: Good match – most core skills, 1–2 missing.
-- 60–69: Fair match – partial relevance, notable gaps.
-- <60: Poor match – mostly irrelevant.
+- 90-100: Perfect match - all required + desired skills, correct experience level.
+- 80-89: Strong match - all core skills, minor gaps.
+- 70-79: Good match - most core skills, 1-2 missing.
+- 60-69: Fair match - partial relevance, notable gaps.
+- <60: Poor match - mostly irrelevant.
 
 DEDUCTIONS:
 - Missing critical JD keywords.
