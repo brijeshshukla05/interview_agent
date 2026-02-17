@@ -363,14 +363,30 @@ def screen_resume(resume_text: str, jd_text: str):
         )
         
         llm = get_llm(temperature=config.TEMPERATURE_EVAL, max_tokens=config.MAX_TOKENS_EVAL)
-        response = llm.invoke([HumanMessage(content=prompt)])
-        parsed = extract_json(response.content)
-        if not isinstance(parsed, dict):
-            parsed = {}
-        llm_name = str(parsed.get("name", "")).strip()
-        if not llm_name or llm_name.lower() in {"unknown", "unknown candidate", "n/a", "na"}:
-            parsed["name"] = fallback_name
-        return parsed
+
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = llm.invoke([HumanMessage(content=prompt)])
+                result = extract_json(response.content)
+                if not isinstance(result, dict):
+                    result = {}
+
+                # Retry parser-error shaped outputs.
+                if result.get("score") == 0 and result.get("reasoning") == "Parser Error":
+                    logger.warning(f"Screening attempt {attempt+1}/{max_retries} failed to parse. Retrying...")
+                    time.sleep(1)
+                    continue
+
+                llm_name = str(result.get("name", "")).strip()
+                if not llm_name or llm_name.lower() in {"unknown", "unknown candidate", "n/a", "na"}:
+                    result["name"] = fallback_name
+                return result
+            except Exception as e:
+                logger.warning(f"Screening attempt {attempt+1}/{max_retries} raised exception: {e}")
+                time.sleep(1)
+
+        return {"score": 0, "reasoning": "Failed to screen resume after retries.", "name": fallback_name}
     except Exception as e:
         logger.error(f"Error screening resume: {e}")
         fallback_name = extract_candidate_name_from_text(resume_text) or "Unknown Candidate"
