@@ -34,6 +34,10 @@ IMPORTANT:
 5. Variety & Breadth:
    - Mix it up! If you asked a definition question, ask a scenario next.
    - Do NOT stay stuck on the same narrow aspect.
+   
+6. PRACTICALITY OVER TRIVIA:
+   - Do NOT ask obscure trivia or "gotcha" questions.
+   - Focus on practical engineering scenarios that a developer faces in real work.
 
 6. PRACTICALITY OVER TRIVIA:
    - Do NOT ask obscure trivia or "gotcha" questions.
