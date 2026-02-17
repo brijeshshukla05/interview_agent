@@ -178,3 +178,92 @@ How would you design an integration or extension to the existing LMS to address 
 2026-02-17 14:39:50,407 - __main__ - INFO - Starting resume analysis
 2026-02-17 14:39:50,419 - agent.resume - INFO - Low native PDF text detected; attempting OCR fallback
 2026-02-17 14:39:59,527 - agent.resume - INFO - Screening resume against JD
+2026-02-17 16:10:29,149 - __main__ - INFO - Initializing Database
+2026-02-17 16:10:29,150 - __main__ - INFO - Initializing Graph in Session State
+2026-02-17 16:10:29,150 - agent.graph - INFO - Creating StateGraph
+2026-02-17 16:10:29,156 - __main__ - INFO - User mode selected: Candidate Access
+2026-02-17 16:10:35,025 - __main__ - INFO - Initializing Database
+2026-02-17 16:10:35,031 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:10:37,706 - __main__ - INFO - Initializing Database
+2026-02-17 16:10:37,714 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:10:38,443 - __main__ - INFO - Initializing Database
+2026-02-17 16:10:38,450 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:10:39,526 - __main__ - INFO - Initializing Database
+2026-02-17 16:10:39,527 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:10:55,584 - __main__ - INFO - Initializing Database
+2026-02-17 16:10:55,588 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:11:05,998 - __main__ - INFO - Initializing Database
+2026-02-17 16:11:06,000 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:11:07,731 - __main__ - INFO - Initializing Database
+2026-02-17 16:11:07,736 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:11:07,749 - __main__ - INFO - Starting resume analysis
+2026-02-17 16:11:07,834 - agent.resume - INFO - Screening resume against JD
+2026-02-17 16:13:08,798 - agent.resume - INFO - Screening resume against JD
+2026-02-17 16:13:10,355 - agent.resume - ERROR - Error screening resume: Connection error.
+2026-02-17 16:14:17,271 - __main__ - INFO - Initializing Database
+2026-02-17 16:14:17,271 - __main__ - INFO - Initializing Graph in Session State
+2026-02-17 16:14:17,272 - agent.graph - INFO - Creating StateGraph
+2026-02-17 16:14:17,277 - __main__ - INFO - User mode selected: Candidate Access
+2026-02-17 16:14:19,936 - __main__ - INFO - Initializing Database
+2026-02-17 16:14:19,942 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:14:21,719 - __main__ - INFO - Initializing Database
+2026-02-17 16:14:21,727 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:14:22,731 - __main__ - INFO - Initializing Database
+2026-02-17 16:14:22,740 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:14:23,826 - __main__ - INFO - Initializing Database
+2026-02-17 16:14:23,828 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:14:50,476 - __main__ - INFO - Initializing Database
+2026-02-17 16:14:50,481 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:14:57,053 - __main__ - INFO - Initializing Database
+2026-02-17 16:14:57,055 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:15:03,563 - __main__ - INFO - Initializing Database
+2026-02-17 16:15:03,571 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:15:03,587 - __main__ - INFO - Starting resume analysis
+2026-02-17 16:15:03,663 - agent.resume - INFO - Screening resume against JD
+2026-02-17 16:19:40,122 - agent.resume - INFO - Attempting OCR fallback (native_len=2989, sparse_pages=0)
+2026-02-17 16:20:12,656 - agent.resume - INFO - Attempting OCR fallback (native_len=2989, sparse_pages=0)
+2026-02-17 16:22:01,306 - agent.resume - INFO - Attempting OCR fallback (native_len=2989, sparse_pages=0)
+2026-02-17 16:22:40,768 - __main__ - INFO - Initializing Database
+2026-02-17 16:22:40,768 - __main__ - INFO - Initializing Graph in Session State
+2026-02-17 16:22:40,769 - agent.graph - INFO - Creating StateGraph
+2026-02-17 16:22:40,775 - __main__ - INFO - User mode selected: Candidate Access
+2026-02-17 16:22:45,252 - __main__ - INFO - Initializing Database
+2026-02-17 16:22:45,257 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:22:46,929 - __main__ - INFO - Initializing Database
+2026-02-17 16:22:46,935 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:22:47,749 - __main__ - INFO - Initializing Database
+2026-02-17 16:22:47,758 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:22:48,845 - __main__ - INFO - Initializing Database
+2026-02-17 16:22:48,847 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:22:50,164 - __main__ - INFO - Initializing Database
+2026-02-17 16:22:50,171 - __main__ - INFO - User mode selected: Candidate Access
+2026-02-17 16:22:51,663 - __main__ - INFO - Initializing Database
+2026-02-17 16:22:51,670 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:23:00,613 - __main__ - INFO - Initializing Database
+2026-02-17 16:23:00,615 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:23:06,012 - __main__ - INFO - Initializing Database
+2026-02-17 16:23:06,014 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:23:06,846 - __main__ - INFO - Initializing Database
+2026-02-17 16:23:06,853 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:23:06,861 - __main__ - INFO - Starting resume analysis
+2026-02-17 16:23:06,946 - agent.resume - INFO - Attempting OCR fallback (native_len=2989, sparse_pages=0)
+2026-02-17 16:23:14,396 - agent.resume - INFO - Screening resume against JD
+2026-02-17 16:23:29,676 - __main__ - INFO - Initializing Database
+2026-02-17 16:23:29,685 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:23:38,184 - __main__ - INFO - Initializing Database
+2026-02-17 16:23:38,188 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:23:46,255 - __main__ - INFO - Initializing Database
+2026-02-17 16:23:46,260 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:23:46,268 - __main__ - INFO - Starting resume analysis
+2026-02-17 16:23:46,275 - agent.resume - INFO - Attempting OCR fallback (native_len=0, sparse_pages=1)
+2026-02-17 16:23:55,199 - agent.resume - INFO - Screening resume against JD
+2026-02-17 16:26:00,773 - __main__ - INFO - Initializing Database
+2026-02-17 16:26:00,782 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:26:06,904 - __main__ - INFO - Initializing Database
+2026-02-17 16:26:06,908 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:26:07,989 - __main__ - INFO - Initializing Database
+2026-02-17 16:26:07,996 - __main__ - INFO - User mode selected: HR Admin
+2026-02-17 16:26:08,004 - __main__ - INFO - Starting resume analysis
+2026-02-17 16:26:08,147 - agent.resume - INFO - Screening resume against JD
+2026-02-17 16:43:54,896 - __main__ - INFO - Initializing Database
+2026-02-17 16:43:54,902 - __main__ - INFO - User mode selected: HR Admin

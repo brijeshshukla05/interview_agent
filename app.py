@@ -4,7 +4,7 @@ import os
 import pandas as pd
 from agent.graph import create_graph
 from agent.state import AgentState
-from agent.resume import extract_resume_content, screen_resume
+from agent.resume import extract_candidate_name_from_text, extract_resume_content, screen_resume
 import config
 from agent.audio import text_to_speech_bytes, audio_bytes_to_text
 from streamlit_mic_recorder import mic_recorder
@@ -212,6 +212,14 @@ if mode == "HR Admin":
                                 analysis["extraction_error_code"] = extraction.get("error_code")
                             if extraction.get("error_message"):
                                 analysis["extraction_error_message"] = extraction.get("error_message")
+
+                        # Deterministic name fallback if LLM output is missing/unknown.
+                        parsed_name = str(analysis.get("name", "")).strip()
+                        if not parsed_name or parsed_name.lower() in {"unknown", "unknown candidate", "n/a", "na"}:
+                            analysis["name"] = (
+                                extract_candidate_name_from_text(resume_text)
+                                or os.path.splitext(uploaded_file.name)[0]
+                            )
                         
                         name = analysis.get("name", "Unknown")
                         score = analysis.get("score", 0)
