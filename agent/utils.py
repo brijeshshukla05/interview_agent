@@ -41,4 +41,8 @@ def extract_json(text: str) -> Dict[str, Any]:
             # Try direct load if braces aren't found (unlikely for object)
             return json.loads(text)
     except json.JSONDecodeError:
+        # Log the raw text to debug why it failed
+        from agent.logger import get_logger
+        logger = get_logger(__name__)
+        logger.error(f"Failed to parse JSON. Raw LLM response: {text}")
         return {"score": 0, "feedback": "Failed to parse evaluation response.", "reasoning": "Parser Error"}
